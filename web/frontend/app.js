@@ -22,15 +22,17 @@ async function analyze(repo, mode) {
     try {
       data = JSON.parse(text);
     } catch {
-      throw new Error(`Server returned non-JSON (status ${res.status}): ${text.slice(0, 200)}`);
+      const raw = text.replace(/</g, "&lt;").slice(0, 500);
+      throw new Error(`<b>Backend returned non-JSON (status ${res.status}):</b><br><pre>${raw}</pre>`);
     }
     if (!res.ok) {
       throw new Error(data.detail || data.message || res.statusText || "Request failed");
     }
     render(data);
   } catch (err) {
-    error.textContent = err.message;
-    error.classList.remove("hidden");
+    const errorEl = document.getElementById("error");
+    errorEl.innerHTML = err.message;
+    errorEl.classList.remove("hidden");
   } finally {
     loading.classList.add("hidden");
     btn.disabled = false;
