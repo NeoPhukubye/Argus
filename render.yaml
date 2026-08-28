@@ -3,9 +3,9 @@ services:
     name: arguscode-api
     env: python
     plan: free
-    rootDirectory: .
-    buildCommand: pip install --no-cache-dir -r web/backend/requirements.txt && pip install --no-cache-dir -e .
-    startCommand: cd web/backend && PYTHONPATH=/opt/render/project/src uvicorn main:app --host 0.0.0.0 --port $PORT
+    rootDirectory: web/backend
+    buildCommand: pip install --no-cache-dir -r requirements.txt && pip install --no-cache-dir -e ..
+    startCommand: PYTHONPATH=/opt/render/project/src uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: GEMINI_API_KEY
         sync: false
