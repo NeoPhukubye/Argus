@@ -154,7 +154,7 @@ class Evaluator:
                 ) for f in d.get("findings", [])],
             ))
         overall = float(data.get("overall_score", 0.0))
-        return RepoReport(
+        report = RepoReport(
             repo=scan.get("repo", str(self.repo_path.name)),
             mode=self.mode,
             dimensions=dims,
@@ -162,3 +162,31 @@ class Evaluator:
             narrative=data.get("narrative", ""),
             metadata={"scan": scan, "tools": tools, "model": "gemini-2.0-flash", "raw_response": raw},
         )
+        self._save_trajectory(report)
+        return report
+
+    def _save_trajectory(self, report: RepoReport) -> None:
+        try:
+            import json
+            from datetime import datetime
+            out = Path("trajectories") / f"{report.repo}_{self.mode}.json"
+            out.parent.mkdir(exist_ok=True)
+            out.write_text(json.dumps({
+                "repo": report.repo,
+                "mode": self.mode,
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+                "tool_calls": [
+                    {
+                        "tool": tc.tool,
+                        "args": tc.args,
+                        "result": tc.result,
+                        "duration_ms": tc.duration_ms,
+                    }
+                    for tc in self.trajectory.tool_calls
+                ],
+                "prompts": self.trajectory.prompts,
+                "raw_response": self.trajectory.raw_response,
+                "overall_score": report.overall_score,
+            }, indent=2))
+        except Exception as exc:
+            log.warning("trajectory_save_failed", error=str(exc))
