@@ -1,0 +1,55 @@
+{
+  "cases": [
+    {
+      "repo": "https://github.com/neophukubye/TraceBot",
+      "expected_rank": 1,
+      "notes": "Strong agentic tooling, good README, real use"
+    },
+    {
+      "repo": "https://github.com/neophukubye/ForgeMind",
+      "expected_rank": 2,
+      "notes": "Complex multi-agent, docs present"
+    },
+    {
+      "repo": "https://github.com/neophukubye/FinPilot",
+      "expected_rank": 3,
+      "notes": "Finance agent, tests likely present"
+    },
+    {
+      "repo": "https://github.com/neophukubye/ForgePipeline",
+      "expected_rank": 4,
+      "notes": "CI/CD focus"
+    },
+    {
+      "repo": "https://github.com/neophukubye/MoMoSmartMoney",
+      "expected_rank": 5,
+      "notes": "MoMo integration, variable quality"
+    },
+    {
+      "repo": "https://github.com/neophukubye/TruthLens",
+      "expected_rank": 6,
+      "notes": "AI quality tool, expected decent tests"
+    },
+    {
+      "repo": "https://github.com/psf/requests",
+      "expected_rank": 7,
+      "notes": "Mature, well-tested OSS"
+    },
+    {
+      "repo": "https://github.com/pallets/flask",
+      "expected_rank": 8,
+      "notes": "Mature, well-documented"
+    },
+    {
+      "repo": "https://github.com/neophukubye/Robot-World-Brownfields",
+      "expected_rank": 9,
+      "notes": "Student project, likely lower quality"
+    },
+    {
+      "repo": "https://github.com/neophukubye/hello-world-mess",
+      "expected_rank": 10,
+      "notes": "Deliberately messy: no tests, no docs, no error handling"
+    }
+  ],
+  "messy_case": "https://github.com/neophukubye/hello-world-mess"
+}
