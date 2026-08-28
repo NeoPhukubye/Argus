@@ -17,6 +17,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["ruff>=0.4", "mypy>=1.9"]
+web = ["fastapi>=0.110", "uvicorn[standard]>=0.29"]
 
 [tool.ruff]
 line-length = 100

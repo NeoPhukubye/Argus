@@ -100,8 +100,13 @@ argus-code/
 - git, pytest, coverage installed
 
 ```bash
-pip install -e ".[dev]"
+python -m venv .venv
+source .venv/bin/activate
+pip install -e .
+pip install -r web/backend/requirements.txt
 ```
+
+**Note:** `pip install -e .` is required before installing web backend deps, because `web/backend/` imports from the root `argus/` package.
 
 ## License
 
