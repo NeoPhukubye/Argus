@@ -26,6 +26,8 @@ Reading a repo by hand doesn't scale and is inconsistent. A README and passing d
 
 ## Usage
 
+### CLI
+
 ```bash
 export GEMINI_API_KEY="your-key"
 python argus/main.py https://github.com/neophukubye/TraceBot --mode reviewer
@@ -34,6 +36,22 @@ python argus/main.py /path/to/your/repo --mode baseline
 ```
 
 Outputs to `reports/latest.json` and `reports/latest.md`.
+
+### Web
+
+Frontend: GitHub Pages (static HTML/JS)  
+Backend: Render.com (FastAPI)
+
+```bash
+# Run backend locally
+cd web/backend
+uvicorn main:app --reload
+
+# Open frontend
+open web/frontend/index.html
+```
+
+API: `POST /api/analyze` with `{ "repo": "<url>", "mode": "reviewer" }`
 
 ## Architecture
 
@@ -53,6 +71,9 @@ argus-code/
 │   │   ├── static_tools.py   # Linters, AST analyzers, audit runners
 │   │   └── dynamic_tools.py  # Subprocess sandbox executor
 │   └── main.py               # CLI entrypoint
+├── web/
+│   ├── backend/              # FastAPI service (deploy to Render.com)
+│   └── frontend/             # Static site (deploy to GitHub Pages)
 ├── eval/
 │   ├── test_cases.json       # Metadata for 10+ evaluation repos
 │   └── benchmark.py          # Baseline vs Argus comparison runner
