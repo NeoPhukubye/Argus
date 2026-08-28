@@ -1,0 +1,72 @@
+{
+  "repo": "TraceBot",
+  "mode": "reviewer",
+  "timestamp": "2026-08-28T17:30:00Z",
+  "tool_calls": [
+    {
+      "tool": "scan",
+      "args": {},
+      "result": {
+        "repo": "TraceBot",
+        "commit_count": 47,
+        "language": "python",
+        "test_file_count": 12,
+        "source_file_count": 34,
+        "top_level_tree": ["argus/", "agents/", "core/", "tools/", "README.md", "pyproject.toml"]
+      },
+      "duration_ms": 1200
+    },
+    {
+      "tool": "build",
+      "args": {"cmd": "pip install -e . || pip install . || true"},
+      "result": {
+        "ok": true,
+        "output": "Successfully installed argus-code-0.1.0",
+        "duration_ms": 8500
+      },
+      "duration_ms": 8500
+    },
+    {
+      "tool": "test",
+      "args": {"cmd": "pytest -q --tb=short --no-header || true"},
+      "result": {
+        "ok": true,
+        "output": "12 passed, 2 skipped in 3.4s",
+        "duration_ms": 15200
+      },
+      "duration_ms": 15200
+    },
+    {
+      "tool": "coverage",
+      "args": {"cmd": "coverage run + report"},
+      "result": {
+        "ok": true,
+        "output": "Name                     Stmts   Miss  Cover\n-------------------------------------------------\nargus/                     456     89    80%\nagents/                    234     12    95%\ncore/                      189     45    76%\ntools/                     167     23    86%",
+        "duration_ms": 22100
+      },
+      "duration_ms": 22100
+    },
+    {
+      "tool": "audit",
+      "args": {"cmd": "pip-audit || true"},
+      "result": {
+        "ok": true,
+        "output": "No vulnerabilities found.",
+        "duration_ms": 3400
+      },
+      "duration_ms": 3400
+    }
+  ],
+  "prompts": [
+    {
+      "role": "system",
+      "content": "You are ArgusCode, a deterministic code-review agent..."
+    },
+    {
+      "role": "user",
+      "content": "{\"mode\":\"reviewer\",\"scan\":{...},\"tools\":{\"dynamic\":{...},\"verifier\":{...},\"static\":{...}}}"
+    }
+  ],
+  "raw_response": "{\"dimensions\":[...],\"overall_score\":0.78,\"narrative\":\"TraceBot is a well-structured agentic tooling repo with strong test coverage and no critical vulnerabilities. Minor gaps in documentation and dependency hygiene.\"}",
+  "overall_score": 0.78
+}
