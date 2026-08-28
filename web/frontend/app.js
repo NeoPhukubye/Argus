@@ -1,4 +1,4 @@
-const API_BASE = window.location.origin;
+const API_BASE = "https://arguscode-api.onrender.com";
 
 async function analyze(repo, mode) {
   const loading = document.getElementById("loading");
@@ -17,17 +17,16 @@ async function analyze(repo, mode) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ repo, mode }),
     });
-    if (!res.ok) {
-      let msg = res.statusText;
-      try {
-        const data = await res.json();
-        msg = data.detail || data.message || msg;
-      } catch {
-        msg = (await res.text()) || msg;
-      }
-      throw new Error(msg);
+    const text = await res.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      throw new Error(`Server returned non-JSON (status ${res.status}): ${text.slice(0, 200)}`);
     }
-    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.detail || data.message || res.statusText || "Request failed");
+    }
     render(data);
   } catch (err) {
     error.textContent = err.message;
