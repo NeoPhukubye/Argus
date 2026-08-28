@@ -1,18 +1,22 @@
 # ArgusCode
 
-One repo, two reviewers. ArgusCode evaluates a codebase in **self-check** mode (your personal bar) or **reviewer** mode (independent audit for someone deciding whether to trust/merge/hire off it). Built for the micro1 Frontier Engineering Challenge 2026.
+ArgusCode evaluates a codebase in **self-check** mode (your personal bar) or **reviewer** mode (independent audit for someone deciding whether to trust/merge/hire off it). Built for the micro1 Agentic Workflows Hackathon 2026.
 
-## Problem
+## Who has this problem?
 
-Reading a repo by hand doesn't scale and is inconsistent. A README and passing demo tell you almost nothing about test coverage, error handling, architecture, or technical debt. Engineers and reviewers need a fast, evidence-based quality signal.
+Engineers, reviewers, and engineering managers who need to judge whether a codebase is actually good before relying on it — shipping it, buying it, grading it, or hiring off it.
 
-## What It Does
+## What bottleneck makes it worth solving?
 
-1. **Scans** the repo — file tree, build config, tests, secrets, bare excepts, large files.
-2. **Runs** pytest and coverage where applicable (sandboxed subprocess).
-3. **Verifies** test meaningfulness — mutation check (replace error handling with pass, rerun tests).
-4. **Scores** against a 6-dimension rubric with file/line evidence.
-5. **Reports** in two modes from the same structured JSON.
+Reading a repo by hand doesn't scale and is inconsistent. A README and passing demo tell you almost nothing about test coverage, error handling, architecture, or technical debt. If you don't have a repeatable method, quality assessment depends on incomplete or inconsistent judgment.
+
+## Does the agent solve it well?
+
+Yes. ArgusCode clones and scans a repo, runs the build and tests, checks structure/dependencies/error-handling coverage, and scores it against a rubric with file:line evidence. The mutation-check verification layer catches the critical failure mode: passing tests that would not actually catch regressions. A qualified human still makes the final call.
+
+## Can another person reproduce the result?
+
+Yes. Use public repos, document exact setup/commands/tool versions, and tie every score to a file, test result, or build output. See `REPRODUCTION.md`.
 
 ## Rubric Dimensions
 
@@ -43,13 +47,11 @@ Frontend: GitHub Pages (static HTML/JS)
 Backend: Render.com (FastAPI)
 
 ```bash
-# Run backend locally
 cd web/backend
 uvicorn main:app --reload
-
-# Open frontend
-open web/frontend/index.html
 ```
+
+Open `web/frontend/index.html` or visit the GitHub Pages URL.
 
 API: `POST /api/analyze` with `{ "repo": "<url>", "mode": "reviewer" }`
 
@@ -102,8 +104,7 @@ argus-code/
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -e .
-pip install -r web/backend/requirements.txt
+pip install -e ".[web]"
 ```
 
 **Note:** `pip install -e .` is required before installing web backend deps, because `web/backend/` imports from the root `argus/` package.
