@@ -1,4 +1,26 @@
-const API_BASE = "https://argus-uh8y.onrender.com";
+const API_BASE = location.protocol + "//" + location.host;
+const FALLBACK_API_BASE = "https://argus-uh8y.onrender.com";
+
+async function resolveApiBase() {
+  const candidates = [API_BASE, FALLBACK_API_BASE];
+  for (const base of candidates) {
+    try {
+      const res = await fetch(`${base}/api/health`, { method: "GET", mode: "cors" });
+      if (res.ok) return base;
+    } catch {
+      continue;
+    }
+  }
+  return FALLBACK_API_BASE;
+}
+
+let activeApiBase = null;
+async function getApiBase() {
+  if (!activeApiBase) {
+    activeApiBase = await resolveApiBase();
+  }
+  return activeApiBase;
+}
 
 function scoreClass(pct) {
   if (pct >= 75) return "score-high";
@@ -27,7 +49,8 @@ async function analyze(repo, mode) {
   btn.disabled = true;
 
   try {
-    const res = await fetch(`${API_BASE}/api/analyze`, {
+    const apiBase = await getApiBase();
+    const res = await fetch(`${apiBase}/api/analyze`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ repo, mode }),
@@ -46,7 +69,11 @@ async function analyze(repo, mode) {
     render(data);
   } catch (err) {
     const errorEl = document.getElementById("error");
-    errorEl.innerHTML = err.message;
+    if (err.name === "TypeError" && err.message.includes("fetch")) {
+      errorEl.innerHTML = `<strong>Network Error</strong><br/>Unable to reach the analysis service. Please check your internet connection and try again.`;
+    } else {
+      errorEl.innerHTML = err.message;
+    }
     errorEl.classList.remove("hidden");
   } finally {
     loading.classList.add("hidden");
