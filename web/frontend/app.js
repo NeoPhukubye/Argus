@@ -21,6 +21,15 @@ async function analyze(repo, mode) {
   const error = document.getElementById("error");
   const btn = document.getElementById("submit-btn");
 
+  loading.innerHTML = `
+    <div class="loading-card">
+      <div class="loading-spinner"></div>
+      <div>
+        <div class="loading-text">Analyzing repository...</div>
+        <div class="loading-subtext">This can take a minute. Please wait.</div>
+      </div>
+    </div>
+  `;
   loading.classList.remove("hidden");
   result.classList.add("hidden");
   error.classList.add("hidden");
@@ -38,7 +47,7 @@ async function analyze(repo, mode) {
       data = JSON.parse(text);
     } catch {
       const raw = text.replace(/</g, "&lt;").slice(0, 500);
-      throw new Error(`<b>Backend returned non-JSON (status ${res.status}):</b><br><pre>${raw}</pre>`);
+      throw new Error(`Backend returned non-JSON (status ${res.status})`);
     }
     if (!res.ok) {
       throw new Error(data.detail || data.message || res.statusText || "Request failed");
@@ -47,9 +56,21 @@ async function analyze(repo, mode) {
   } catch (err) {
     const errorEl = document.getElementById("error");
     if (err.name === "TypeError" && err.message.includes("fetch")) {
-      errorEl.innerHTML = `<strong>Network Error</strong><br/>Unable to reach the analysis service. Please check your internet connection and try again.`;
+      errorEl.innerHTML = `
+        <div class="error-icon">🌐</div>
+        <div class="error-content">
+          <div class="error-title">Network Error</div>
+          <div class="error-message">Unable to reach the analysis service. Please check your internet connection and try again.</div>
+        </div>
+      `;
     } else {
-      errorEl.innerHTML = err.message;
+      errorEl.innerHTML = `
+        <div class="error-icon">⚠️</div>
+        <div class="error-content">
+          <div class="error-title">Analysis Failed</div>
+          <div class="error-message">${escapeHtml(err.message)}</div>
+        </div>
+      `;
     }
     errorEl.classList.remove("hidden");
   } finally {
