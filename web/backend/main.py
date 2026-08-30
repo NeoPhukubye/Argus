@@ -1,5 +1,6 @@
 from pathlib import Path
 from typing import Optional
+import os
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,15 +10,25 @@ from pydantic import BaseModel
 from argus.agents.evaluator import Evaluator
 from argus.agents.reporter import Reporter
 from argus.core.scanner import clone_repo
+from middleware import RateLimitMiddleware
 
 app = FastAPI(title="ArgusCode API", version="0.1.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "http://localhost:8000",
+        "https://*.onrender.com",
+    ],
+    allow_origin_regex=r"https://.*\.onrender\.com",
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.add_middleware(RateLimitMiddleware, requests_per_minute=30)
 
 FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
 
