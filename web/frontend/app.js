@@ -36,7 +36,7 @@ async function analyze(repo, mode) {
   btn.disabled = true;
 
   try {
-    const res = await fetch(`${API_BASE}/api/analyze`, {
+    const res = await fetch(`${API_BASE}/api/analyze/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ repo, mode }),
