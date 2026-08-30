@@ -41,14 +41,6 @@ def health():
     return {"status": "ok"}
 
 
-@app.get("/{full_path:path}")
-def serve_frontend(request: Request, full_path: str):
-    path = FRONTEND_DIR / full_path
-    if full_path and path.exists() and path.is_file():
-        return FileResponse(path)
-    return FileResponse(FRONTEND_DIR / "index.html")
-
-
 @app.exception_handler(Exception)
 async def generic_exception_handler(request: Request, exc: Exception):
     return JSONResponse(status_code=500, content={"detail": str(exc)})
@@ -81,3 +73,13 @@ def analyze(req: AnalyzeRequest):
         ],
         markdown=md,
     )
+
+
+@app.get("/{full_path:path}")
+def serve_frontend(request: Request, full_path: str):
+    if full_path.startswith("api/"):
+        return JSONResponse(status_code=404, content={"detail": "Not found"})
+    path = FRONTEND_DIR / full_path
+    if full_path and path.exists() and path.is_file():
+        return FileResponse(path)
+    return FileResponse(FRONTEND_DIR / "index.html")
