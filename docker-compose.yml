@@ -1,0 +1,12 @@
+version: "3.8"
+
+services:
+  backend:
+    build: ./web/backend
+    ports:
+      - "8000:8000"
+    environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+    volumes:
+      - ./web/backend:/app
