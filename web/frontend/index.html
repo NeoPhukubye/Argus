@@ -3,45 +3,79 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ArgusCode</title>
+  <title>ArgusCode — Agentic Code Review</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>ArgusCode</h1>
-      <p class="subtitle">Agentic code review — self-check or independent audit</p>
-    </header>
+  <div class="page-bg">
+    <div class="container">
+      <header class="app-header">
+        <div class="logo">
+          <div class="logo-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              <path d="M9 12l2 2 4-4" />
+            </svg>
+          </div>
+          <h1>ArgusCode</h1>
+        </div>
+        <p class="subtitle">Agentic code review — independent audit, self-check, or baseline rating</p>
+      </header>
 
-    <form id="analyze-form">
-      <label>
-        <span>Repository URL</span>
-        <input id="repo" type="text" placeholder="https://github.com/owner/repo" required />
-      </label>
-      <label>
-        <span>Mode</span>
-        <select id="mode">
-          <option value="reviewer">Reviewer (third-party audit)</option>
-          <option value="self_check">Self-Check (personal punch-list)</option>
-          <option value="baseline">Baseline (single-prompt rating)</option>
-        </select>
-      </label>
-      <button type="submit" id="submit-btn">Analyze</button>
-    </form>
+      <main>
+        <section class="panel input-panel">
+          <form id="analyze-form" class="analyze-form" autocomplete="off">
+            <div class="form-row">
+              <label class="field">
+                <span class="field-label">Repository URL</span>
+                <input id="repo" type="text" placeholder="https://github.com/owner/repo" required />
+              </label>
+              <label class="field">
+                <span class="field-label">Mode</span>
+                <select id="mode">
+                  <option value="reviewer">Reviewer (third-party audit)</option>
+                  <option value="self_check">Self-Check (personal punch-list)</option>
+                  <option value="baseline">Baseline (single-prompt rating)</option>
+                </select>
+              </label>
+            </div>
+            <button type="submit" id="submit-btn" class="btn-primary">
+              <span class="btn-text">Analyze Repository</span>
+              <span class="btn-loader" aria-hidden="true"></span>
+            </button>
+          </form>
+        </section>
 
-    <div id="result" class="hidden">
-      <div class="score-bar">
-        <div class="score-fill" id="score-fill"></div>
-        <div class="score-text" id="score-text">0%</div>
-      </div>
-      <div class="mode-badge" id="mode-badge">reviewer</div>
-      <div class="narrative" id="narrative"></div>
-      <div class="dimensions" id="dimensions"></div>
-      <div class="report" id="report"></div>
+        <section id="loading" class="loading hidden" aria-live="polite">
+          <div class="loading-spinner" aria-hidden="true"></div>
+          <span>Analyzing… this can take a minute.</span>
+        </section>
+
+        <div id="error" class="error hidden" role="alert"></div>
+
+        <section id="result" class="results hidden" aria-live="polite">
+          <div class="score-bar">
+            <div class="score-fill" id="score-fill"></div>
+            <div class="score-text" id="score-text">0%</div>
+          </div>
+
+          <div class="result-header">
+            <div class="mode-badge" id="mode-badge">reviewer</div>
+            <span class="result-time" id="result-time" aria-label="Analysis completed"></span>
+          </div>
+
+          <div class="narrative" id="narrative"></div>
+
+          <div class="dimensions" id="dimensions"></div>
+
+          <div class="report" id="report"></div>
+        </section>
+      </main>
+
+      <footer class="app-footer">
+        <p>ArgusCode · Built for rigorous, repeatable code review</p>
+      </footer>
     </div>
-
-    <div id="error" class="error hidden"></div>
-    <div id="loading" class="loading hidden">Analyzing… this can take a minute.</div>
   </div>
 
   <script src="app.js"></script>
