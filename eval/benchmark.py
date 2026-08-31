@@ -42,10 +42,10 @@ def main() -> None:
     for case in cases:
         dest = Path("/tmp") / case.repo.replace("/", "_").replace(":", "_")
         repo_path = clone_repo(case.repo, dest)
-        log.info("advanced", repo=case.repo)
+        log.info("advanced", extra={"repo": case.repo})
         adv = Evaluator(repo_path, mode="reviewer").score()
         advanced_reports.append(adv)
-        log.info("baseline", repo=case.repo)
+        log.info("baseline", extra={"repo": case.repo})
         bl = run_baseline(repo_path)
         baseline_reports.append(bl)
 
@@ -88,7 +88,7 @@ Baseline correlation: {bl_corr:.3f}
 | Evidence-linked findings per report | 0 | 6–18 | +100% |
 """
     (out_dir / "benchmark.md").write_text(md)
-    log.info("done", advanced_corr=adv_corr, baseline_corr=bl_corr)
+    log.info("done", extra={"advanced_corr": adv_corr, "baseline_corr": bl_corr})
 
 
 if __name__ == "__main__":
