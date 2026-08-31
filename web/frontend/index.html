@@ -74,6 +74,10 @@
                 </select>
               </label>
             </div>
+            <label class="field">
+              <span class="field-label">Expected Narrative (optional)</span>
+              <textarea id="expected-narrative" placeholder="Paste the expected/ideal review narrative here. ArgusCode will compare its generated narrative against this reference."></textarea>
+            </label>
             <button type="submit" id="submit-btn" class="btn-primary">
               <span class="btn-text">Analyze Repository</span>
               <span class="btn-loader" aria-hidden="true"></span>
@@ -97,6 +101,7 @@
           </div>
 
           <div class="narrative" id="narrative"></div>
+          <div id="narrative-match" class="narrative-match hidden"></div>
 
           <div class="dimensions" id="dimensions"></div>
 

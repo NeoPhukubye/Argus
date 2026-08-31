@@ -15,7 +15,7 @@ function escapeHtml(text) {
     .replace(/'/g, "&#039;");
 }
 
-async function analyze(repo, mode) {
+async function analyze(repo, mode, expectedNarrative) {
   const loading = document.getElementById("loading");
   const result = document.getElementById("result");
   const error = document.getElementById("error");
@@ -39,7 +39,7 @@ async function analyze(repo, mode) {
     const res = await fetch(`${API_BASE}/api/analyze/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-       body: JSON.stringify({ repo, mode, rubric: "standard" }),
+       body: JSON.stringify({ repo, mode, rubric: "standard", expected_narrative: expectedNarrative }),
     });
     const text = await res.text();
     let data;
@@ -101,6 +101,15 @@ function render(data) {
 
   narrative.textContent = data.narrative || "No narrative provided.";
 
+  const matchEl = document.getElementById("narrative-match");
+  if (data.narrative_match != null) {
+    const pct = Math.round(data.narrative_match * 100);
+    matchEl.innerHTML = `<strong>Narrative Match:</strong> ${pct}% <span class="muted">(compared against provided reference)</span>`;
+    matchEl.classList.remove("hidden");
+  } else {
+    matchEl.classList.add("hidden");
+  }
+
   dimensions.innerHTML = "";
   for (const dim of data.dimensions) {
     const card = document.createElement("div");
@@ -148,6 +157,7 @@ document.getElementById("analyze-form").addEventListener("submit", (e) => {
   e.preventDefault();
   const repo = document.getElementById("repo").value.trim();
   const mode = document.getElementById("mode").value;
+  const expectedNarrative = document.getElementById("expected-narrative").value.trim() || null;
   if (!repo) return;
-  analyze(repo, mode);
+  analyze(repo, mode, expectedNarrative);
 });
