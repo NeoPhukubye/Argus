@@ -16,7 +16,7 @@ log = logging.getLogger(__name__)
 def clone_repo(url: str, dest: Path) -> Path:
     if dest.exists():
         shutil.rmtree(dest)
-    log.info("cloning", url=url, dest=str(dest))
+    log.info("cloning", extra={"url": url, "dest": str(dest)})
     git.Repo.clone_from(url, dest)
     return dest
 
@@ -34,7 +34,7 @@ def safe_read(path: Path, max_bytes: int = 200_000) -> str:
     try:
         return path.read_text(errors="replace")[:max_bytes]
     except Exception as exc:
-        log.debug("read_failed", path=str(path), error=str(exc))
+        log.debug("read_failed", extra={"path": str(path), "error": str(exc)})
         return ""
 
 
