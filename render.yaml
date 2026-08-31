@@ -4,8 +4,8 @@ services:
     env: python
     plan: free
     rootDirectory: web/backend
-    buildCommand: pip install --no-cache-dir -r requirements.txt && pip install --no-cache-dir -e ..
-    startCommand: PYTHONPATH=/opt/render/project/src uvicorn main:app --host 0.0.0.0 --port $PORT
+    buildCommand: pip install --no-cache-dir -r requirements.txt && pip install --no-cache-dir -e ../..
+    startCommand: PYTHONPATH=/opt/render/project/src uvicorn web.backend.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: GEMINI_API_KEY
         sync: false
