@@ -12,10 +12,15 @@ SELF_CHECK_TEMPLATE = """# Self-Check Report: {repo}
 
 **Overall Score:** {overall:.0%}
 
+## Narrative
+
+{narrative}
+
+{narrative_match}
 ## Dimension Scores
 
-| Dimension | Score | Status | Evidence |
-|-----------|-------|--------|----------|
+| Dimension | Weight | Score | Status | Evidence |
+|-----------|--------|-------|--------|----------|
 {dimensions}
 
 ## Findings
@@ -37,6 +42,11 @@ REVIEWER_TEMPLATE = """# Reviewer Report: {repo}
 **Confidence:** {confidence}  
 **Overall Score:** {overall:.0%}
 
+## Narrative
+
+{narrative}
+
+{narrative_match}
 ## Risk Summary
 
 {risk}
@@ -81,12 +91,24 @@ class Reporter:
         return SELF_CHECK_TEMPLATE.format(
             repo=self.report.repo,
             overall=self.report.overall_score,
+            narrative=self.report.narrative or "No narrative provided.",
+            narrative_match=self._format_narrative_match(),
             dimensions=dim_table,
             findings="\n\n".join(
                 self._format_findings(d) for d in self.report.dimensions
             ),
             blockers=blocker_section,
         )
+
+    def _format_narrative_match(self) -> str:
+        match = self.report.metadata.get("narrative_match")
+        if match is None:
+            return ""
+        expected = self.report.metadata.get("expected_narrative")
+        if not expected:
+            return ""
+        pct = int(match * 100)
+        return f"**Narrative Match:** {pct}% (compared against provided reference)\n\n"
 
     @staticmethod
     def _format_findings(dim: DimensionScore) -> str:
@@ -127,6 +149,8 @@ class Reporter:
             verdict=verdict,
             confidence=confidence,
             overall=self.report.overall_score,
+            narrative=self.report.narrative or "No narrative provided.",
+            narrative_match=self._format_narrative_match(),
             risk=self.report.narrative or "No significant risk identified beyond dimension scores.",
             dimensions=dim_section,
             evidence=evidence_section,
