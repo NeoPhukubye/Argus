@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from argus.types import RepoReport
+from argus.types import DimensionScore, RepoReport
 
 log = logging.getLogger(__name__)
 
