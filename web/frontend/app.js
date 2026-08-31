@@ -39,7 +39,7 @@ async function analyze(repo, mode) {
     const res = await fetch(`${API_BASE}/api/analyze/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ repo, mode }),
+       body: JSON.stringify({ repo, mode, rubric: "standard" }),
     });
     const text = await res.text();
     let data;
@@ -113,7 +113,8 @@ function render(data) {
     const findingsHtml = dim.findings.map(f => {
       const cls = f.passed ? "pass" : "fail";
       const label = f.passed ? "PASS" : "FAIL";
-      return `<li><strong class="${cls}">${label}</strong> ${f.check_id}: ${f.evidence}</li>`;
+      const pct = f.points_possible ? Math.round((f.points_awarded / f.points_possible) * 100) : 100;
+      return `<li><strong class="${cls}">${label}</strong> ${f.check_id} (${pct}%): ${f.evidence}</li>`;
     }).join("");
 
     card.innerHTML = `
