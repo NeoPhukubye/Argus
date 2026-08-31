@@ -52,3 +52,23 @@ class Trajectory:
     tool_calls: list[ToolCall]
     prompts: list[dict[str, Any]]
     raw_response: str = ""
+
+
+@dataclass
+class RubricCheck:
+    check_id: str
+    description: str
+    weight: float = 1.0
+
+
+@dataclass
+class RubricDimension:
+    name: str
+    weight: float
+    checks: list[RubricCheck] = field(default_factory=list)
+
+
+@dataclass
+class Rubric:
+    name: str
+    dimensions: list[RubricDimension]
