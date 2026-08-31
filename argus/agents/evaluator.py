@@ -8,9 +8,10 @@ from typing import Any
 
 from argus.core.scanner import detect_language, find_files, safe_read, toml_load
 from argus.core.verifier import Verifier
+from argus.rubric import get_rubric
 from argus.tools.dynamic_tools import DynamicTools
 from argus.tools.static_tools import StaticTools
-from argus.types import DimensionScore, Finding, RepoReport
+from argus.types import DimensionScore, Finding, RepoReport, Rubric
 
 log = logging.getLogger(__name__)
 
@@ -25,6 +26,7 @@ SYSTEM_PROMPT = dedent(
         {
           "name": "<dimension>",
           "score": <0-1>,
+          "weight": <0-1>,
           "findings": [
             {"check_id": "<id>", "passed": true/false, "evidence": "<short text>"}
           ]
@@ -37,10 +39,21 @@ SYSTEM_PROMPT = dedent(
 )
 
 
+def rubric_to_prompt(rubric: Rubric) -> str:
+    lines = [f"Rubric: {rubric.name}", ""]
+    for dim in rubric.dimensions:
+        lines.append(f"Dimension: {dim.name} (weight {dim.weight:.0%})")
+        for check in dim.checks:
+            lines.append(f"  - {check.check_id}: {check.description} (weight {check.weight:.1f})")
+        lines.append("")
+    return "\n".join(lines)
+
+
 class Evaluator:
-    def __init__(self, repo_path: Path, mode: str = "reviewer"):
+    def __init__(self, repo_path: Path, mode: str = "reviewer", rubric: Rubric | None = None):
         self.repo_path = repo_path
         self.mode = mode
+        self.rubric = rubric or get_rubric("standard")
         self.language = detect_language(repo_path)
         self.verifier = Verifier(repo_path)
         self.static = StaticTools(repo_path)
@@ -114,19 +127,42 @@ class Evaluator:
             "reviewer": "You are an independent code reviewer assessing whether this repo is ready to be trusted by others. Output a verdict per dimension with confidence and caveats. A human reviewer makes the final call.",
             "baseline": "You are a quick code reviewer. Given README and file tree, rate 1-10.",
         }.get(self.mode, "You are a code reviewer.")
-        payload = {"mode": self.mode, "mode_prompt": mode_prompt, "scan": scan, "tools": tools}
+        payload = {
+            "mode": self.mode,
+            "mode_prompt": mode_prompt,
+            "rubric": self._rubric_to_dict(),
+            "scan": scan,
+            "tools": tools,
+        }
         self.trajectory.prompts.append({"role": "user", "content": json.dumps(payload, indent=2)[:20000]})
         return json.dumps(payload, indent=2)[:20000]
+
+    def _rubric_to_dict(self) -> dict[str, Any]:
+        return {
+            "name": self.rubric.name,
+            "dimensions": [
+                {
+                    "name": d.name,
+                    "weight": d.weight,
+                    "checks": [
+                        {"check_id": c.check_id, "description": c.description, "weight": c.weight}
+                        for c in d.checks
+                    ],
+                }
+                for d in self.rubric.dimensions
+            ],
+        }
 
     def score(self) -> RepoReport:
         scan = self.scan()
         tools = self.run_tools()
         prompt = self.build_prompt(scan, tools)
         model = self._client()
+        rubric_prompt = rubric_to_prompt(self.rubric)
         self.trajectory.prompts.append({"role": "system", "content": SYSTEM_PROMPT})
         try:
             response = model.generate_content(
-                f"{SYSTEM_PROMPT}\n\n{prompt}",
+                f"{SYSTEM_PROMPT}\n\n{rubric_prompt}\n\n{prompt}",
                 generation_config={"response_mime_type": "application/json"},
             )
             raw = response.text or "{}"
@@ -139,19 +175,30 @@ class Evaluator:
         except json.JSONDecodeError:
             data = {}
         dims: list[DimensionScore] = []
+        rubric_weights = {d.name: d.weight for d in self.rubric.dimensions}
         for d in data.get("dimensions", []):
+            dim_name = str(d.get("name", "unknown"))
+            check_weights = {}
+            for rd in self.rubric.dimensions:
+                if rd.name == dim_name:
+                    check_weights = {c.check_id: c.weight for c in rd.checks}
+                    break
+            findings_list = d.get("findings", [])
+            points_possible = sum(
+                check_weights.get(str(f.get("check_id", "")), 1.0) for f in findings_list
+            ) if findings_list else 0.0
             dims.append(DimensionScore(
-                name=str(d.get("name", "unknown")),
-                weight=0.0,
+                name=dim_name,
+                weight=rubric_weights.get(dim_name, d.get("weight", 0.0)),
                 score=float(d.get("score", 0.0)),
                 findings=[Finding(
                     check_id=f.get("check_id", "unknown"),
-                    dimension=str(d.get("name", "unknown")),
+                    dimension=dim_name,
                     passed=bool(f.get("passed", False)),
                     evidence=str(f.get("evidence", ""))[:300],
-                    points_awarded=1 if f.get("passed") else 0,
-                    points_possible=1,
-                ) for f in d.get("findings", [])],
+                    points_awarded=check_weights.get(str(f.get("check_id", "")), 1.0) if f.get("passed") else 0.0,
+                    points_possible=check_weights.get(str(f.get("check_id", "")), 1.0),
+                ) for f in findings_list],
             ))
         overall = float(data.get("overall_score", 0.0))
         report = RepoReport(
