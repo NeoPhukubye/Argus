@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from argus.agents.evaluator import Evaluator
 from argus.agents.reporter import Reporter
 from argus.core.scanner import clone_repo
+from argus.rubric import get_rubric
 
 router = APIRouter()
 
@@ -13,6 +14,7 @@ router = APIRouter()
 class AnalyzeRequest(BaseModel):
     repo: str
     mode: str = "reviewer"
+    rubric: str = "standard"
 
 
 class AnalyzeResponse(BaseModel):
@@ -30,7 +32,7 @@ def analyze(req: AnalyzeRequest):
         raise HTTPException(status_code=400, detail="Repository URL cannot be empty")
     dest = Path(f"/tmp/{req.repo.replace('/', '_').replace(':', '_')}")
     repo_path = clone_repo(req.repo, dest)
-    evaluator = Evaluator(repo_path, mode=req.mode)
+    evaluator = Evaluator(repo_path, mode=req.mode, rubric=get_rubric(req.rubric))
     report = evaluator.score()
     reporter = Reporter(report)
     md = reporter.to_markdown()
