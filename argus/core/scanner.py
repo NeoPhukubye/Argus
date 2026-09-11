@@ -6,18 +6,20 @@ import time
 from pathlib import Path
 from typing import Any
 
-import git
-
 from argus.types import ToolCall, Trajectory
 
 log = logging.getLogger(__name__)
 
 
-def clone_repo(url: str, dest: Path) -> Path:
+def clone_repo(url: str, dest: Path, timeout: int = 120) -> Path:
     if dest.exists():
         shutil.rmtree(dest)
     log.info("cloning", extra={"url": url, "dest": str(dest)})
-    git.Repo.clone_from(url, dest)
+    subprocess.check_output(
+        ["git", "clone", "--depth=1", url, str(dest)],
+        stderr=subprocess.STDOUT,
+        timeout=timeout,
+    )
     return dest
 
 
