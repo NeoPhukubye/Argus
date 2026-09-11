@@ -8,8 +8,8 @@ class Finding:
     dimension: str
     passed: bool
     evidence: str
-    points_awarded: int
-    points_possible: int
+    points_awarded: float
+    points_possible: float
 
 
 @dataclass

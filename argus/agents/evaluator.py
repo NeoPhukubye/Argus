@@ -1,12 +1,11 @@
 import json
 import logging
-import os
-import re
+from datetime import datetime, timezone
 from pathlib import Path
 from textwrap import dedent
 from typing import Any
 
-from argus.core.scanner import detect_language, find_files, safe_read, toml_load
+from argus.core.scanner import detect_language, find_files, toml_load
 from argus.core.verifier import Verifier
 from argus.rubric import get_rubric
 from argus.tools.dynamic_tools import DynamicTools
@@ -68,7 +67,7 @@ class Evaluator:
         self.dynamic = DynamicTools(repo_path)
         self.trajectory = self.dynamic.runner.trajectory
 
-    def _client(self):
+    def _client(self) -> Any:
         return get_gemini_client()
 
     def scan(self) -> dict[str, Any]:
@@ -190,9 +189,6 @@ class Evaluator:
                     check_weights = {c.check_id: c.weight for c in rd.checks}
                     break
             findings_list = d.get("findings", [])
-            points_possible = sum(
-                check_weights.get(str(f.get("check_id", "")), 1.0) for f in findings_list
-            ) if findings_list else 0.0
             dims.append(DimensionScore(
                 name=dim_name,
                 weight=rubric_weights.get(dim_name, d.get("weight", 0.0)),
@@ -246,8 +242,8 @@ class Evaluator:
     def _compare_narrative(self, generated: str) -> float | None:
         if not self.expected_narrative:
             return None
-        gen_words = set(w.strip(".,;:!?()[]\"'").lower() for w in generated.split())
-        exp_words = set(w.strip(".,;:!?()[]\"'").lower() for w in self.expected_narrative.split())
+        gen_words = {w.strip(".,;:!?()[]\"'").lower() for w in generated.split()}
+        exp_words = {w.strip(".,;:!?()[]\"'").lower() for w in self.expected_narrative.split()}
         gen_words.discard("")
         exp_words.discard("")
         if not gen_words or not exp_words:
@@ -258,14 +254,13 @@ class Evaluator:
 
     def _save_trajectory(self, report: RepoReport) -> None:
         try:
-            import json
             from datetime import datetime
             out = Path("trajectories") / f"{report.repo}_{self.mode}.json"
             out.parent.mkdir(exist_ok=True)
             out.write_text(json.dumps({
                 "repo": report.repo,
                 "mode": self.mode,
-                "timestamp": datetime.utcnow().isoformat() + "Z",
+                "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
                 "tool_calls": [
                     {
                         "tool": tc.tool,
