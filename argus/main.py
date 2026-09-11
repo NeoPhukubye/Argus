@@ -5,14 +5,11 @@ from __future__ import annotations
 import argparse
 import json
 import logging
-import os
 from pathlib import Path
 
 from argus.agents.evaluator import Evaluator
 from argus.agents.reporter import Reporter
 from argus.core.scanner import clone_repo
-from argus.types import RepoReport
-
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)
