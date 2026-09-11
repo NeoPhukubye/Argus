@@ -196,7 +196,7 @@ class Evaluator:
             dims.append(DimensionScore(
                 name=dim_name,
                 weight=rubric_weights.get(dim_name, d.get("weight", 0.0)),
-                score=float(d.get("score", 0.0)),
+                score=max(0.0, min(1.0, float(d.get("score", 0.0)))),
                 findings=[Finding(
                     check_id=f.get("check_id", "unknown"),
                     dimension=dim_name,
@@ -206,7 +206,7 @@ class Evaluator:
                     points_possible=check_weights.get(str(f.get("check_id", "")), 1.0),
                 ) for f in findings_list],
             ))
-        overall = float(data.get("overall_score", 0.0))
+        overall = max(0.0, min(1.0, float(data.get("overall_score", 0.0))))
         narrative = self._derive_narrative(data.get("narrative", ""), scan, tools)
         narrative_match = self._compare_narrative(narrative)
         report = RepoReport(

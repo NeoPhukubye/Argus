@@ -37,7 +37,7 @@ def run_baseline(repo_path: Path, model: str = "gemini-2.0-flash") -> RepoReport
         data = {"score": 0, "reasoning": raw[:200]}
     raw_score = data.get("score", data.get("rating", 0))
     try:
-        score = min(10.0, max(0.0, float(raw_score)))
+        score = min(10.0, max(0.0, float(raw_score))) / 10.0
     except Exception:
         score = 0.0
     return RepoReport(
