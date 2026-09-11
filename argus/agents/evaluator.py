@@ -12,6 +12,7 @@ from argus.rubric import get_rubric
 from argus.tools.dynamic_tools import DynamicTools
 from argus.tools.static_tools import StaticTools
 from argus.types import DimensionScore, Finding, RepoReport, Rubric
+from argus.utils.llm import get_gemini_client
 
 log = logging.getLogger(__name__)
 
@@ -68,16 +69,7 @@ class Evaluator:
         self.trajectory = self.dynamic.runner.trajectory
 
     def _client(self):
-        try:
-            import google.generativeai as genai
-            api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
-            if not api_key:
-                raise RuntimeError("GEMINI_API_KEY or GOOGLE_API_KEY not set")
-            genai.configure(api_key=api_key)
-            return genai.GenerativeModel("gemini-2.0-flash")
-        except Exception as exc:
-            log.error("gemini_client_failed", extra={"error": str(exc)})
-            raise
+        return get_gemini_client()
 
     def scan(self) -> dict[str, Any]:
         pyproject = toml_load(self.repo_path / "pyproject.toml")
