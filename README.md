@@ -22,11 +22,12 @@ Yes. Use public repos, document exact setup/commands/tool versions, and tie ever
 
 | Dimension | Weight | Verification |
 |-----------|--------|--------------|
-| build_setup_reproducibility | 20% | Exit code 0, env logs, dependency resolution time |
-| test_quality_resilience | 25% | Test runner output, passed/failed, mutation check |
-| error_handling_fault_tolerance | 20% | Bare except / catch-all scan, unhandled rejections, fallbacks |
-| dependency_hygiene_security | 15% | Lockfile audit, outdated/vulnerable packages, license check |
-| architectural_structure_docs | 20% | README command check, AST file graph, docstring coverage |
+| Security | 20% | Secrets scan, dependency audit, SQL/command injection checks |
+| Correctness | 20% | Bare-except scan, input validation, test coverage |
+| Maintainability | 15% | Docstring coverage, module coupling, README accuracy |
+| Performance | 15% | N+1 patterns, resource bounds, caching |
+| Reliability | 15% | Test structure, error messages, retry patterns |
+| Style | 15% | Consistent style, naming, dead code, import organization |
 
 ## Usage
 
