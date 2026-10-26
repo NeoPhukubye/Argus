@@ -44,7 +44,8 @@ async def generic_exception_handler(request: Request, exc: Exception):
     return JSONResponse(status_code=500, content={"detail": str(exc)})
 
 
-@app.post("/api/analyze", response_model=AnalyzeResponse)
+@app.post("/api/analyze")
+@app.post("/api/analyze/")
 def analyze(req: AnalyzeRequest):
     dest = Path("/tmp") / req.repo.replace("/", "_").replace(":", "_")
     repo_path = clone_repo(req.repo, dest)
