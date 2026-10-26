@@ -18,11 +18,14 @@ def clone_repo(url: str, dest: Path, timeout: int = 120) -> Path:
     if dest.exists():
         shutil.rmtree(dest)
     log.info("cloning", extra={"url": url, "dest": str(dest)})
-    subprocess.check_output(
-        ["git", "clone", "--depth=1", url, str(dest)],
-        stderr=subprocess.STDOUT,
-        timeout=timeout,
-    )
+        out = subprocess.check_output(
+            ["git", "clone", "--depth=1", url, str(dest)],
+            stderr=subprocess.STDOUT,
+            timeout=timeout,
+        )
+    except subprocess.CalledProcessError as exc:
+        log.error("clone_failed", extra={"url": url, "dest": str(dest), "error": exc.output.decode(errors="replace")})
+        raise
     return dest
 
 
@@ -46,9 +49,13 @@ def safe_read(path: Path, max_bytes: int = 200_000) -> str:
 def toml_load(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
-    with path.open("rb") as f:
-        data: dict[str, Any] = tomllib.load(f)
-    return data
+    try:
+        with path.open("rb") as f:
+            data: dict[str, Any] = tomllib.load(f)
+        return data
+    except (OSError, ValueError, Exception):
+        log.debug("toml_load_failed", extra={"path": str(path)})
+        return {}
 
 
 def json_load(path: Path) -> dict[str, Any]:
