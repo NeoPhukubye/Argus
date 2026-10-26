@@ -1,14 +1,11 @@
 import json
 import logging
-import os
 from pathlib import Path
 from statistics import mean
 
 from argus.agents.evaluator import Evaluator
-from argus.agents.reporter import Reporter
 from argus.core.scanner import clone_repo
 from argus.types import EvalCase, RepoReport
-
 from baseline.run_baseline import run_baseline
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -26,9 +23,9 @@ def score_correlation(scores: list[float], expected: list[int]) -> float:
         return 0.0
     ms = mean(scores)
     me = mean(expected)
-    num = sum((s - ms) * (e - me) for s, e in zip(scores, expected))
-    den_s = sum((s - ms) ** 2 for s in scores) ** 0.5
-    den_e = sum((e - me) ** 2 for e in expected) ** 0.5
+    num: float = sum((s - ms) * (e - me) for s, e in zip(scores, expected))
+    den_s: float = sum((s - ms) ** 2 for s in scores) ** 0.5
+    den_e: float = sum((e - me) ** 2 for e in expected) ** 0.5
     if den_s == 0 or den_e == 0:
         return 0.0
     return num / (den_s * den_e)
