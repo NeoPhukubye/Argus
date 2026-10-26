@@ -25,12 +25,17 @@ def main() -> None:
     args = ap.parse_args()
 
     repo_path = Path(args.repo)
-    if "://" in args.repo or args.repo.count("/") == 1:
+    if "://" in args.repo or args.repo.count("/") == 1 and not repo_path.exists():
         dest = Path("/tmp") / args.repo.replace("/", "_").replace(":", "_")
-        repo_path = clone_repo(args.repo, dest)
+        try:
+            repo_path = clone_repo(args.repo, dest)
+        except Exception as exc:
+            log.error("repo_clone_failed", extra={"repo": args.repo, "error": str(exc)})
+            raise
 
     if args.mode == "baseline":
         from baseline.run_baseline import run_baseline
+
         report = run_baseline(repo_path, model=args.model)
     else:
         evaluator = Evaluator(repo_path, mode=args.mode)
