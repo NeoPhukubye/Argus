@@ -7,6 +7,38 @@
   <link rel="stylesheet" href="styles.css?v=3" />
 </head>
 <body>
+  <div id="onboarding" class="onboarding hidden" role="dialog" aria-modal="true" aria-label="Welcome to ArgusCode">
+    <div class="onboarding-backdrop"></div>
+    <div class="onboarding-card">
+      <button id="onboarding-skip" class="onboarding-skip" aria-label="Skip onboarding">Skip</button>
+      <div class="onboarding-step" data-step="0">
+        <div class="onboarding-icon">📋</div>
+        <h2>Paste a repo</h2>
+        <p>Start by entering any public GitHub repository URL.</p>
+      </div>
+      <div class="onboarding-step hidden" data-step="1">
+        <div class="onboarding-icon">🎯</div>
+        <h2>Choose a mode</h2>
+        <p>Pick Reviewer, Self-Check, or Baseline depending on your goal.</p>
+      </div>
+      <div class="onboarding-step hidden" data-step="2">
+        <div class="onboarding-icon">✨</div>
+        <h2>Review results</h2>
+        <p>Read the score, explore dimension findings, and download the report.</p>
+      </div>
+      <div class="onboarding-footer">
+        <div class="onboarding-dots">
+          <span class="dot active" data-dot="0"></span>
+          <span class="dot" data-dot="1"></span>
+          <span class="dot" data-dot="2"></span>
+        </div>
+        <div class="onboarding-actions">
+          <button id="onboarding-next" class="btn-primary">Next</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="page-bg">
     <div class="container">
       <header class="app-header">
