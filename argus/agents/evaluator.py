@@ -1,6 +1,6 @@
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC
 from pathlib import Path
 from textwrap import dedent
 from typing import Any
@@ -260,7 +260,7 @@ class Evaluator:
             out.write_text(json.dumps({
                 "repo": report.repo,
                 "mode": self.mode,
-                "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
+                "timestamp": datetime.now(UTC).isoformat() + "Z",
                 "tool_calls": [
                     {
                         "tool": tc.tool,
