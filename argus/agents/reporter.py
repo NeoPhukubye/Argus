@@ -161,6 +161,10 @@ class Reporter:
             "mode": self.report.mode,
             "overall_score": self.report.overall_score,
             "narrative": self.report.narrative,
+            "metadata": {
+                "narrative_match": self.report.metadata.get("narrative_match"),
+                "expected_narrative": self.report.metadata.get("expected_narrative"),
+            },
             "dimensions": [
                 {
                     "name": d.name,
