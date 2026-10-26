@@ -65,7 +65,6 @@ class Verifier:
         src = [p for p in src if "test" not in str(p).lower() and "__pycache__" not in str(p)][:5]
         if not src:
             return {"supported": False, "reason": "no source files found"}
-        import re
         error_handlers = 0
         for p in src:
             text = safe_read(p)

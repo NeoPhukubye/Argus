@@ -3,8 +3,6 @@ from pathlib import Path
 from typing import Any
 
 from argus.core.runner import RepoRunner
-from argus.core.scanner import clone_repo
-from argus.types import ToolCall, Trajectory
 
 log = logging.getLogger(__name__)
 
