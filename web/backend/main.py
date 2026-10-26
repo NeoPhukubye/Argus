@@ -7,7 +7,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse
 from pydantic import BaseModel
 
-from .middleware import RateLimitMiddleware
+if __package__:
+    from .middleware import RateLimitMiddleware
+    from .routes.analyze import router as analyze_router
+    from .routes.health import router as health_router
+else:
+    from middleware import RateLimitMiddleware
+    from routes.analyze import router as analyze_router
+    from routes.health import router as health_router
 
 app = FastAPI(title="ArgusCode API", version="0.1.0")
 
@@ -26,9 +33,6 @@ app.add_middleware(
 )
 
 app.add_middleware(RateLimitMiddleware, requests_per_minute=30)
-
-from .routes.analyze import router as analyze_router
-from .routes.health import router as health_router
 
 app.include_router(health_router, prefix="/api", tags=["Health"])
 app.include_router(analyze_router, prefix="/api/analyze", tags=["Analyze"])
