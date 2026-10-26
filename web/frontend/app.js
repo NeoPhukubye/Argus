@@ -1,4 +1,4 @@
-const API_BASE = "https://arguscode-api.onrender.com";
+const API_BASE = "https://argus-uh8y.onrender.com";
 
 async function analyze(repo, mode) {
   const loading = document.getElementById("loading");
