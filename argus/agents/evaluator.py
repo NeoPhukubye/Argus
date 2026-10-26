@@ -50,10 +50,17 @@ def rubric_to_prompt(rubric: Rubric) -> str:
 
 
 class Evaluator:
-    def __init__(self, repo_path: Path, mode: str = "reviewer", rubric: Rubric | None = None):
+    def __init__(
+        self,
+        repo_path: Path,
+        mode: str = "reviewer",
+        rubric: Rubric | None = None,
+        expected_narrative: str | None = None,
+    ):
         self.repo_path = repo_path
         self.mode = mode
         self.rubric = rubric or get_rubric("standard")
+        self.expected_narrative = expected_narrative
         self.language = detect_language(repo_path)
         self.verifier = Verifier(repo_path)
         self.static = StaticTools(repo_path)
@@ -201,16 +208,37 @@ class Evaluator:
                 ) for f in findings_list],
             ))
         overall = float(data.get("overall_score", 0.0))
+        narrative_match = self._compare_narrative(data.get("narrative", ""))
         report = RepoReport(
             repo=scan.get("repo", str(self.repo_path.name)),
             mode=self.mode,
             dimensions=dims,
             overall_score=overall,
             narrative=data.get("narrative", ""),
-            metadata={"scan": scan, "tools": tools, "model": "gemini-2.0-flash", "raw_response": raw},
+            metadata={
+                "scan": scan,
+                "tools": tools,
+                "model": "gemini-2.0-flash",
+                "raw_response": raw,
+                "expected_narrative": self.expected_narrative,
+                "narrative_match": narrative_match,
+            },
         )
         self._save_trajectory(report)
         return report
+
+    def _compare_narrative(self, generated: str) -> float | None:
+        if not self.expected_narrative:
+            return None
+        gen_words = set(w.strip(".,;:!?()[]\"'").lower() for w in generated.split())
+        exp_words = set(w.strip(".,;:!?()[]\"'").lower() for w in self.expected_narrative.split())
+        gen_words.discard("")
+        exp_words.discard("")
+        if not gen_words or not exp_words:
+            return 0.0
+        intersection = gen_words & exp_words
+        union = gen_words | exp_words
+        return round(len(intersection) / len(union), 4) if union else 0.0
 
     def _save_trajectory(self, report: RepoReport) -> None:
         try:
