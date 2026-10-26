@@ -77,8 +77,8 @@ class Evaluator:
         if pkg_path.exists():
             try:
                 pkg = json.loads(pkg_path.read_text())
-            except Exception:
-                pass
+            except (OSError, ValueError) as exc:
+                log.debug("pkg_read_failed", extra={"path": str(pkg_path), "error": str(exc)})
         tests = find_files(self.repo_path, [
             "tests/**/*.py", "test/**/*.py", "__tests__/**/*.py",
             "tests/**/*.ts", "test/**/*.ts"
@@ -89,7 +89,7 @@ class Evaluator:
             import git
             repo_obj = git.Repo(self.repo_path)
             commit_count = int(repo_obj.git.rev_list("--count", "HEAD"))
-        except Exception:
+        except (ImportError, git.exc.InvalidGitRepositoryError, git.exc.NoSuchPathError, git.exc.GitCommandError, OSError, ValueError):
             commit_count = 0
         return {
             "repo": self.repo_path.name,
@@ -171,7 +171,7 @@ class Evaluator:
                 generation_config={"response_mime_type": "application/json"},
             )
             raw = response.text or "{}"
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             log.error("gemini_generate_failed", extra={"error": str(exc)})
             raw = "{}"
         self.trajectory.raw_response = raw
@@ -274,5 +274,5 @@ class Evaluator:
                 "raw_response": self.trajectory.raw_response,
                 "overall_score": report.overall_score,
             }, indent=2))
-        except Exception as exc:
+        except (OSError, ValueError, TypeError) as exc:
             log.warning("trajectory_save_failed", extra={"error": str(exc)})
