@@ -1,11 +1,9 @@
 import json
 from pathlib import Path
-from typing import Any
 
 from argus.core.scanner import find_files, safe_read
 from argus.types import RepoReport
 from argus.utils.llm import get_gemini_client
-
 
 SYSTEM_PROMPT = (
     "You are a code reviewer. Given a repo's README and file tree, "
