@@ -4,6 +4,8 @@ import logging
 from pathlib import Path
 from typing import Any
 
+import tomli as tomllib
+
 from argus.core.scanner import find_files, safe_read
 
 log = logging.getLogger(__name__)
@@ -26,7 +28,8 @@ class StaticTools:
                         total += 1
                         if ast.get_docstring(node):
                             with_doc += 1
-            except Exception:
+            except (OSError, SyntaxError) as exc:
+                log.debug("parse_failed", extra={"path": str(p), "error": str(exc)})
                 continue
         pct = (with_doc / total * 100) if total else 0.0
         return {"total": total, "with_docstring": with_doc, "coverage_pct": round(pct, 2)}
@@ -41,16 +44,20 @@ class StaticTools:
         pyproject = self.repo_path / "pyproject.toml"
         if pyproject.exists():
             try:
-                import tomllib
                 with pyproject.open("rb") as f:
                     data = tomllib.load(f)
                 deps = data.get("project", {}).get("dependencies", []) or data.get("dependencies", [])
                 return {"lockfile": "pyproject.toml", "dependency_count": len(deps), "dependencies": deps[:20]}
-            except Exception:
+            except (OSError, tomllib.TOMLDecodeError) as exc:
+                log.debug("toml_load_failed", extra={"path": str(pyproject), "error": str(exc)})
                 return {"lockfile": "pyproject.toml", "dependency_count": 0, "dependencies": []}
         pkg = self.repo_path / "package.json"
         if pkg.exists():
-            data = json.loads(pkg.read_text() or "{}")
+            try:
+                data = json.loads(pkg.read_text() or "{}")
+            except (OSError, ValueError) as exc:
+                log.debug("json_load_failed", extra={"path": str(pkg), "error": str(exc)})
+                data = {}
             deps = {**data.get("dependencies", {}), **data.get("devDependencies", {})}
             return {"lockfile": "package.json", "dependency_count": len(deps), "dependencies": list(deps.keys())[:20]}
         return {"lockfile": None, "dependency_count": 0, "dependencies": []}
@@ -72,6 +79,7 @@ class StaticTools:
                         for alias in node.names:
                             imps.append(alias.name)
                 imports[rel] = imps[:20]
-            except Exception:
+            except (OSError, SyntaxError) as exc:
+                log.debug("parse_failed", extra={"path": str(p), "error": str(exc)})
                 continue
         return {"files": len(imports), "imports": imports}
