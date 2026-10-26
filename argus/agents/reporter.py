@@ -1,0 +1,126 @@
+import json
+import logging
+from pathlib import Path
+from typing import Any
+
+from argus.types import RepoReport
+
+log = logging.getLogger(__name__)
+
+
+SELF_CHECK_TEMPLATE = """# Self-Check Report: {repo}
+
+Overall Score: {overall:.0%}
+
+| Dimension | Score | Status | Top Evidence |
+|-----------|-------|--------|--------------|
+{dimensions}
+
+## Punch List
+{findings}
+
+## Pre-Commit Blockers
+{blockers}
+"""
+
+
+REVIEWER_TEMPLATE = """# Reviewer Report: {repo}
+
+**Verdict:** {verdict}  
+**Confidence:** {confidence}  
+**Overall Score:** {overall:.0%}
+
+## Risk Summary
+{risk}
+
+## Dimension Breakdown
+{dimensions}
+
+## Evidence Trace
+{evidence}
+
+## Human-in-the-Loop Sign-off
+{signoff}
+"""
+
+
+class Reporter:
+    def __init__(self, report: RepoReport):
+        self.report = report
+
+    def to_markdown(self) -> str:
+        if self.report.mode == "self_check":
+            return self._self_check()
+        return self._reviewer()
+
+    def _self_check(self) -> str:
+        rows = []
+        blockers = []
+        for d in self.report.dimensions:
+            status = "PASS" if d.score >= 0.75 else ("WARN" if d.score >= 0.5 else "FAIL")
+            top = d.findings[0].evidence if d.findings else "No findings"
+            rows.append(f"| {d.name} | {d.score:.0%} | {status} | {top[:60]} |")
+            if d.score < 0.65:
+                blockers.append(f"- **{d.name}**: {top}")
+        dim_table = "\n".join(rows)
+        blocker_section = "\n".join(blockers) if blockers else "None. Good to go."
+        return SELF_CHECK_TEMPLATE.format(
+            repo=self.report.repo,
+            overall=self.report.overall_score,
+            dimensions=dim_table,
+            findings="\n".join(
+                f"- [{f.passed}] {f.check_id}: {f.evidence}" for d in self.report.dimensions for f in d.findings
+            ),
+            blockers=blocker_section,
+        )
+
+    def _reviewer(self) -> str:
+        if self.report.overall_score >= 0.9:
+            verdict = "Exceptional — ready for production"
+            confidence = "High"
+        elif self.report.overall_score >= 0.75:
+            verdict = "Pass — acceptable with minor caveats"
+            confidence = "Medium-High"
+        elif self.report.overall_score >= 0.5:
+            verdict = "Conditional — significant concerns"
+            confidence = "Medium"
+        else:
+            verdict = "Fail — do not merge / depend"
+            confidence = "High"
+        rows = []
+        evidence_lines = []
+        for d in self.report.dimensions:
+            rows.append(f"### {d.name} ({d.score:.0%})")
+            for f in d.findings:
+                evidence_lines.append(f"- {f.check_id} ({d.name}): {f.evidence}")
+        dim_section = "\n".join(rows)
+        evidence_section = "\n".join(evidence_lines)
+        return REVIEWER_TEMPLATE.format(
+            repo=self.report.repo,
+            verdict=verdict,
+            confidence=confidence,
+            overall=self.report.overall_score,
+            risk=self.report.narrative or "No significant risk identified beyond dimension scores.",
+            dimensions=dim_section,
+            evidence=evidence_section,
+            signoff="This report is advisory. A qualified human must approve any consequential action.",
+        )
+
+    def to_json(self) -> dict[str, Any]:
+        return {
+            "repo": self.report.repo,
+            "mode": self.report.mode,
+            "overall_score": self.report.overall_score,
+            "narrative": self.report.narrative,
+            "dimensions": [
+                {
+                    "name": d.name,
+                    "score": d.score,
+                    "findings": [
+                        {"check_id": f.check_id, "passed": f.passed, "evidence": f.evidence}
+                        for f in d.findings
+                    ],
+                }
+                for d in self.report.dimensions
+            ],
+        }
