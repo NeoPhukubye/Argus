@@ -17,4 +17,8 @@ def get_gemini_client(model_name: str = "gemini-2.0-flash") -> Any:
         raise RuntimeError("GEMINI_API_KEY or GOOGLE_API_KEY not set")
     genai.configure(api_key=api_key)
     model = genai.GenerativeModel
-    return model(model_name)
+    try:
+        return model(model_name)
+    except Exception as exc:
+        log.error("gemini_model_init_failed", extra={"model": model_name, "error": str(exc)})
+        raise
