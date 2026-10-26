@@ -73,7 +73,7 @@ class Reporter:
         for d in self.report.dimensions:
             status = "PASS" if d.score >= 0.75 else ("WARN" if d.score >= 0.5 else "FAIL")
             top = d.findings[0].evidence if d.findings else "No findings"
-            rows.append(f"| {d.name} | {d.score:.0%} | {status} | {top[:60]} |")
+            rows.append(f"| {d.name} | {d.weight:.0%} | {d.score:.0%} | {status} | {top[:60]} |")
             if d.score < 0.65:
                 blockers.append(f"- **{d.name}**: {top}")
         dim_table = "\n".join(rows)
@@ -82,11 +82,22 @@ class Reporter:
             repo=self.report.repo,
             overall=self.report.overall_score,
             dimensions=dim_table,
-            findings="\n".join(
-                f"- [{f.passed}] {f.check_id}: {f.evidence}" for d in self.report.dimensions for f in d.findings
+            findings="\n\n".join(
+                self._format_findings(d) for d in self.report.dimensions
             ),
             blockers=blocker_section,
         )
+
+    @staticmethod
+    def _format_findings(dim: DimensionScore) -> str:
+        if not dim.findings:
+            return f"**{dim.name}** — No findings"
+        lines = [f"**{dim.name}**"]
+        for f in dim.findings:
+            pct = int((f.points_awarded / f.points_possible * 100) if f.points_possible else 0)
+            mark = "PASS" if f.passed else "FAIL"
+            lines.append(f"- [{mark}] {f.check_id} ({pct}%) {f.evidence}")
+        return "\n".join(lines)
 
     def _reviewer(self) -> str:
         if self.report.overall_score >= 0.9:
@@ -104,9 +115,11 @@ class Reporter:
         rows = []
         evidence_lines = []
         for d in self.report.dimensions:
-            rows.append(f"### {d.name} ({d.score:.0%})")
+            rows.append(f"### {d.name} — {d.score:.0%} (weight {d.weight:.0%})")
             for f in d.findings:
-                evidence_lines.append(f"- {f.check_id} ({d.name}): {f.evidence}")
+                pct = int((f.points_awarded / f.points_possible * 100) if f.points_possible else 0)
+                mark = "PASS" if f.passed else "FAIL"
+                evidence_lines.append(f"- [{mark}] {f.check_id} ({pct}): {f.evidence}")
         dim_section = "\n".join(rows)
         evidence_section = "\n".join(evidence_lines)
         return REVIEWER_TEMPLATE.format(
@@ -130,10 +143,12 @@ class Reporter:
                 {
                     "name": d.name,
                     "score": d.score,
-                    "findings": [
-                        {"check_id": f.check_id, "passed": f.passed, "evidence": f.evidence}
-                        for f in d.findings
-                    ],
+                     "findings": [
+                         {"check_id": f.check_id, "passed": f.passed, "evidence": f.evidence,
+                          "points_awarded": f.points_awarded, "points_possible": f.points_possible}
+                         for f in d.findings
+                     ],
+                     "weight": d.weight,
                 }
                 for d in self.report.dimensions
             ],
