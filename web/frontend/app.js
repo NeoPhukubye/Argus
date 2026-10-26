@@ -18,8 +18,14 @@ async function analyze(repo, mode) {
       body: JSON.stringify({ repo, mode }),
     });
     if (!res.ok) {
-      const data = await res.json();
-      throw new Error(data.detail || res.statusText);
+      let msg = res.statusText;
+      try {
+        const data = await res.json();
+        msg = data.detail || data.message || msg;
+      } catch {
+        msg = (await res.text()) || msg;
+      }
+      throw new Error(msg);
     }
     const data = await res.json();
     render(data);
