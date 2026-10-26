@@ -39,10 +39,10 @@ class Verifier:
         return {"count": len(hits), "hits": hits[:20]}
 
     def secrets_scan(self) -> dict[str, Any]:
-        patterns = ["-----BEGIN", "api_key", "secret", "password", "token =", "Authorization"]
+        patterns = ["-----BEGIN", "api_key", "secret", "password", "token =", "Authorization", "AKIA"]
         hits: list[str] = []
         for p in find_files(self.repo_path, ["*"]):
-            if not p.is_file() or any(s in str(p) for s in ["node_modules", ".git", "__pycache__"]):
+            if not p.is_file() or any(s in str(p) for s in ["node_modules", ".git", "__pycache__", ".venv", "venv"]):
                 continue
             try:
                 text = p.read_text(errors="ignore")[:200_000]
