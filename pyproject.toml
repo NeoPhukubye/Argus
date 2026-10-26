@@ -31,4 +31,4 @@ target-version = "py311"
 strict = true
 
 [tool.pytest.ini_options]
-testpaths = ["eval"]
+testpaths = ["tests", "eval"]
