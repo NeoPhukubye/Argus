@@ -178,6 +178,7 @@ class Evaluator:
         try:
             data = json.loads(raw)
         except json.JSONDecodeError:
+            log.warning("json_decode_failed", extra={"raw_preview": raw[:200]})
             data = {}
         dims: list[DimensionScore] = []
         rubric_weights = {d.name: d.weight for d in self.rubric.dimensions}
