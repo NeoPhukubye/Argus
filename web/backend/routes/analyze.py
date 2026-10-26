@@ -23,7 +23,6 @@ class AnalyzeResponse(BaseModel):
 
 
 @router.post("/", response_model=AnalyzeResponse)
-@router.post("", response_model=AnalyzeResponse, include_in_schema=False)
 def analyze(req: AnalyzeRequest):
     if not req.repo.strip():
         raise HTTPException(status_code=400, detail="Repository URL cannot be empty")
