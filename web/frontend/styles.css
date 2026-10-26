@@ -304,17 +304,41 @@ select {
   justify-content: center;
   gap: 14px;
   color: var(--text-secondary);
-  padding: 36px;
+  padding: 40px;
   animation: fadeIn 0.4s ease;
 }
 
+.loading-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 24px 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: var(--shadow-md);
+}
+
 .loading-spinner {
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   border: 3px solid var(--border-medium);
   border-top-color: var(--accent);
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+.loading-text {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.loading-subtext {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 2px;
 }
 
 .error {
@@ -328,6 +352,35 @@ select {
   font-size: 14px;
   line-height: 1.7;
   backdrop-filter: blur(8px);
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.error-icon {
+  font-size: 20px;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.error-content {
+  flex: 1;
+}
+
+.error-title {
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 4px;
+  color: #fecdd3;
+}
+
+.error-message {
+  font-size: 13px;
+  color: #fecdd3;
+  opacity: 0.9;
 }
 
 .results {
