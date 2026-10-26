@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
@@ -26,7 +28,7 @@ class AnalyzeResponse(BaseModel):
 def analyze(req: AnalyzeRequest):
     if not req.repo.strip():
         raise HTTPException(status_code=400, detail="Repository URL cannot be empty")
-    dest = f"/tmp/{req.repo.replace('/', '_').replace(':', '_')}"
+    dest = Path(f"/tmp/{req.repo.replace('/', '_').replace(':', '_')}")
     repo_path = clone_repo(req.repo, dest)
     evaluator = Evaluator(repo_path, mode=req.mode)
     report = evaluator.score()
