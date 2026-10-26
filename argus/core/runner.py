@@ -1,12 +1,12 @@
 import logging
-import os
-import shutil
-import subprocess
 import time
 from pathlib import Path
 from typing import Any
 
-from argus.core.scanner import clone_repo, detect_language, find_files, run_command, safe_read, toml_load
+from argus.core.scanner import (
+    detect_language,
+    run_command,
+)
 from argus.types import ToolCall, Trajectory
 
 log = logging.getLogger(__name__)
