@@ -56,7 +56,7 @@ class Evaluator:
             genai.configure(api_key=api_key)
             return genai.GenerativeModel("gemini-2.0-flash")
         except Exception as exc:
-            log.error("gemini_client_failed", error=str(exc))
+            log.error("gemini_client_failed", extra={"error": str(exc)})
             raise
 
     def scan(self) -> dict[str, Any]:
@@ -131,7 +131,7 @@ class Evaluator:
             )
             raw = response.text or "{}"
         except Exception as exc:
-            log.error("gemini_generate_failed", error=str(exc))
+            log.error("gemini_generate_failed", extra={"error": str(exc)})
             raw = "{}"
         self.trajectory.raw_response = raw
         try:
@@ -189,4 +189,4 @@ class Evaluator:
                 "overall_score": report.overall_score,
             }, indent=2))
         except Exception as exc:
-            log.warning("trajectory_save_failed", error=str(exc))
+            log.warning("trajectory_save_failed", extra={"error": str(exc)})
