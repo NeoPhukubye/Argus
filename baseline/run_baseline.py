@@ -1,22 +1,10 @@
 import json
-import os
 from pathlib import Path
 from typing import Any
 
 from argus.core.scanner import find_files, safe_read
 from argus.types import RepoReport
-
-
-def _client():
-    try:
-        import google.generativeai as genai
-        api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
-        if not api_key:
-            raise RuntimeError("GEMINI_API_KEY or GOOGLE_API_KEY not set")
-        genai.configure(api_key=api_key)
-        return genai.GenerativeModel("gemini-2.0-flash")
-    except Exception as exc:
-        raise RuntimeError(f"Gemini client init failed: {exc}")
+from argus.utils.llm import get_gemini_client
 
 
 SYSTEM_PROMPT = (
@@ -37,7 +25,7 @@ def build_prompt(repo_path: Path) -> str:
 
 def run_baseline(repo_path: Path, model: str = "gemini-2.0-flash") -> RepoReport:
     prompt = build_prompt(repo_path)
-    model_client = _client()
+    model_client = get_gemini_client()
     response = model_client.generate_content(
         f"{SYSTEM_PROMPT}\n\n{prompt}",
         generation_config={"response_mime_type": "application/json"},
