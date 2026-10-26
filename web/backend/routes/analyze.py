@@ -1,6 +1,7 @@
 from pathlib import Path
+from typing import Any
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from argus.agents.evaluator import Evaluator
@@ -25,12 +26,12 @@ class AnalyzeResponse(BaseModel):
     overall_score: float
     narrative: str
     narrative_match: float | None = None
-    dimensions: list[dict]
+    dimensions: list[dict[str, Any]]
     markdown: str
 
 
 @router.post("/", response_model=AnalyzeResponse)
-def analyze(req: AnalyzeRequest):
+def analyze(req: AnalyzeRequest) -> AnalyzeResponse:
     if not req.repo.strip():
         raise HTTPException(status_code=400, detail="Repository URL cannot be empty")
     dest = Path(f"/tmp/{req.repo.replace('/', '_').replace(':', '_')}")
