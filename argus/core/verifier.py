@@ -20,7 +20,8 @@ class Verifier:
                 for i, line in enumerate(text, 1):
                     if line.strip() == "except:":
                         hits.append(f"{p.relative_to(self.repo_path)}:{i}")
-            except Exception:
+            except OSError as exc:
+                log.debug("read_failed", extra={"path": str(p), "error": str(exc)})
                 continue
         return {"count": len(hits), "hits": hits[:20]}
 
@@ -32,7 +33,8 @@ class Verifier:
                 for node in ast.walk(tree):
                     if isinstance(node, ast.ExceptHandler) and node.type is None:
                         hits.append(f"{p.relative_to(self.repo_path)}:{node.lineno}")
-            except Exception:
+            except (OSError, SyntaxError) as exc:
+                log.debug("parse_failed", extra={"path": str(p), "error": str(exc)})
                 continue
         return {"count": len(hits), "hits": hits[:20]}
 
@@ -48,7 +50,8 @@ class Verifier:
                     if pat in text:
                         hits.append(f"{p.relative_to(self.repo_path)}:{pat}")
                         break
-            except Exception:
+            except OSError as exc:
+                log.debug("read_failed", extra={"path": str(p), "error": str(exc)})
                 continue
         return {"count": len(hits), "hits": hits[:20]}
 
