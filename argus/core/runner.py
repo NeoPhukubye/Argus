@@ -1,5 +1,7 @@
 import logging
+import subprocess
 import time
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -18,12 +20,12 @@ class RepoRunner:
         self.language = detect_language(repo_path)
         self.trajectory = Trajectory(repo=repo_path.name, mode="", tool_calls=[], prompts=[])
 
-    def run(self, tool_name: str, args: dict[str, Any], func) -> dict[str, Any]:
+    def run(self, tool_name: str, args: dict[str, Any], func: Callable[[], Any]) -> dict[str, Any]:
         call = ToolCall(tool=tool_name, args=args, result={}, duration_ms=0.0)
         start = time.perf_counter()
         try:
             call.result = func()
-        except Exception as exc:
+        except (subprocess.SubprocessError, OSError, ValueError) as exc:
             call.result = {"error": str(exc)}
         call.duration_ms = int((time.perf_counter() - start) * 1000)
         self.trajectory.tool_calls.append(call)
@@ -45,7 +47,7 @@ class RepoRunner:
 
     def coverage(self) -> dict[str, Any]:
         if self.language == "python":
-            def _cov():
+            def _cov() -> dict[str, Any]:
                 run_command("python -m coverage run -m pytest -q --tb=short --no-header >/dev/null 2>&1 || true", self.repo_path)
                 return run_command("python -m coverage report || true", self.repo_path)
             return self.run("coverage", {"cmd": "coverage run + report"}, _cov)
