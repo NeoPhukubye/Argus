@@ -165,12 +165,12 @@ class Reporter:
                 {
                     "name": d.name,
                     "score": d.score,
-                     "findings": [
-                         {"check_id": f.check_id, "passed": f.passed, "evidence": f.evidence,
-                          "points_awarded": f.points_awarded, "points_possible": f.points_possible}
-                         for f in d.findings
-                     ],
-                     "weight": d.weight,
+                    "findings": [
+                        {"check_id": f.check_id, "passed": f.passed, "evidence": f.evidence,
+                         "points_awarded": f.points_awarded, "points_possible": f.points_possible}
+                        for f in d.findings
+                    ],
+                    "weight": d.weight,
                 }
                 for d in self.report.dimensions
             ],
