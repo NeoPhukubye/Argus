@@ -4,15 +4,25 @@
 
 1. Python 3.11+
 2. Google AI API key (`GEMINI_API_KEY` or `GOOGLE_API_KEY`)
-3. git, pytest, coverage, pip-audit installed
+3. git, pytest, coverage installed
+
+## Install (critical — do this in order)
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+
+# One-shot install: root package + web backend deps
+pip install -e ".[web]"
+
+# Or install separately:
+# pip install -e .
+# pip install -r web/backend/requirements.txt
 ```
 
-## Step 1: Set API Key
+**Why two installs?** `web/backend/` imports from the root `argus/` package. Installing `-e .` from the repo root makes `argus` importable everywhere. The `[web]` extra bundles both steps.
+
+## Set API Key
 
 ```bash
 export GEMINI_API_KEY="your-key"
@@ -20,25 +30,29 @@ export GEMINI_API_KEY="your-key"
 export GOOGLE_API_KEY="your-key"
 ```
 
-## Step 2: Run Baseline
+## Run CLI
 
 ```bash
+# Baseline
 python baseline/run_baseline.py https://github.com/neophukubye/TraceBot --output reports/tracebot_baseline.json
-```
 
-## Step 3: Run Advanced Agent (Reviewer Mode)
-
-```bash
+# Advanced agent
 python argus/main.py https://github.com/neophukubye/TraceBot --mode reviewer
-```
-
-## Step 4: Run Advanced Agent (Self-Check Mode)
-
-```bash
 python argus/main.py /path/to/your/repo --mode self_check
 ```
 
-## Step 5: Run Full Benchmark
+Outputs to `reports/latest.json` and `reports/latest.md`.
+
+## Run Web Backend
+
+```bash
+cd web/backend
+uvicorn main:app --reload
+```
+
+Backend runs at `http://localhost:8000`. Health check: `http://localhost:8000/api/health`.
+
+## Run Full Benchmark
 
 ```bash
 python eval/benchmark.py
@@ -46,7 +60,7 @@ python eval/benchmark.py
 
 This evaluates all 10 repos in both modes and writes `reports/benchmark.json` + `reports/benchmark.md`.
 
-## Step 6: Verify Evidence Traceability
+## Verify Evidence Traceability
 
 Every finding in the JSON output includes `check_id` and `evidence`. Open the report and confirm each score maps to a real file, test, or tool output.
 
