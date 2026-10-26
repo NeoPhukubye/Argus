@@ -1,4 +1,3 @@
-import os
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -9,9 +8,9 @@ from argus.utils.llm import get_gemini_client
 def test_get_gemini_client_missing_key(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     monkeypatch.delenv("GOOGLE_API_KEY", raising=False)
-    with patch.dict("sys.modules", {"google.generativeai": MagicMock()}):
-        with pytest.raises(RuntimeError, match="GEMINI_API_KEY or GOOGLE_API_KEY not set"):
-            get_gemini_client()
+    with patch.dict("sys.modules", {"google.generativeai": MagicMock()}), \
+         pytest.raises(RuntimeError, match="GEMINI_API_KEY or GOOGLE_API_KEY not set"):
+        get_gemini_client()
 
 
 def test_get_gemini_client_with_key(monkeypatch: pytest.MonkeyPatch) -> None:

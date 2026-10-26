@@ -1,7 +1,4 @@
-import json
 from pathlib import Path
-
-import pytest
 
 from argus.core.scanner import detect_language, find_files, json_load, safe_read, toml_load
 
