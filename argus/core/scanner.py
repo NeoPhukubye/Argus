@@ -1,9 +1,13 @@
+import json
 import logging
 import shutil
 import subprocess
 import time
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
+
+import tomli as tomllib
 
 from argus.types import ToolCall, Trajectory
 
@@ -34,30 +38,27 @@ def safe_read(path: Path, max_bytes: int = 200_000) -> str:
         return ""
     try:
         return path.read_text(errors="replace")[:max_bytes]
-    except Exception as exc:
+    except (OSError, UnicodeDecodeError) as exc:
         log.debug("read_failed", extra={"path": str(path), "error": str(exc)})
         return ""
 
 
 def toml_load(path: Path) -> dict[str, Any]:
-    try:
-        import tomllib
-    except ImportError:
-        import tomli as tomllib  # type: ignore[no-redef]
     if not path.exists():
         return {}
     with path.open("rb") as f:
-        return tomllib.load(f)
+        data: dict[str, Any] = tomllib.load(f)
+    return data
 
 
 def json_load(path: Path) -> dict[str, Any]:
-    import json
     if not path.exists():
         return {}
     try:
-        return json.loads(path.read_text())
-    except Exception:
+        data: dict[str, Any] = json.loads(path.read_text())
+    except (OSError, ValueError):
         return {}
+    return data
 
 
 def detect_language(repo_path: Path) -> str:
@@ -81,7 +82,7 @@ def run_command(cmd: str, cwd: Path, timeout: int = 120) -> dict[str, Any]:
         return {"ok": True, "output": out[-8000:], "duration_ms": int((time.perf_counter() - start) * 1000)}
     except subprocess.CalledProcessError as exc:
         return {"ok": False, "output": exc.output.decode(errors="replace")[-8000:], "duration_ms": int((time.perf_counter() - start) * 1000)}
-    except Exception as exc:
+    except (subprocess.SubprocessError, OSError) as exc:
         return {"ok": False, "output": str(exc), "duration_ms": int((time.perf_counter() - start) * 1000)}
 
 
@@ -90,12 +91,12 @@ class SandboxedRunner:
         self.repo_path = repo_path
         self.trajectory = Trajectory(repo=repo_path.name, mode="", tool_calls=[], prompts=[])
 
-    def run(self, tool_name: str, args: dict[str, Any], func) -> dict[str, Any]:
+    def run(self, tool_name: str, args: dict[str, Any], func: Callable[[], Any]) -> dict[str, Any]:
         call = ToolCall(tool=tool_name, args=args, result={}, duration_ms=0.0)
         start = time.perf_counter()
         try:
             call.result = func()
-        except Exception as exc:
+        except (subprocess.SubprocessError, OSError, ValueError) as exc:
             call.result = {"error": str(exc)}
         call.duration_ms = int((time.perf_counter() - start) * 1000)
         self.trajectory.tool_calls.append(call)
