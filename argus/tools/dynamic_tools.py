@@ -1,4 +1,5 @@
 import logging
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -11,7 +12,7 @@ class DynamicTools:
     def __init__(self, repo_path: Path):
         self.runner = RepoRunner(repo_path)
 
-    def execute_tool(self, name: str, args: dict[str, Any], func) -> dict[str, Any]:
+    def execute_tool(self, name: str, args: dict[str, Any], func: Callable[[], Any]) -> dict[str, Any]:
         return self.runner.run(name, args, func)
 
     def all(self) -> dict[str, Any]:
