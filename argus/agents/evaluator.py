@@ -141,6 +141,13 @@ class Evaluator:
             "scan": scan,
             "tools": tools,
         }
+        if self.expected_narrative:
+            payload["reference_narrative"] = (
+                "If applicable, align your narrative with the following reference. "
+                "Do not copy verbatim; produce your own assessment that addresses "
+                "the same key concerns.\n\n"
+                + self.expected_narrative
+            )
         self.trajectory.prompts.append({"role": "user", "content": json.dumps(payload, indent=2)[:20000]})
         return json.dumps(payload, indent=2)[:20000]
 
