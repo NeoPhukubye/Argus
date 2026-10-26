@@ -3,7 +3,7 @@ from typing import Optional
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from pydantic import BaseModel
 
 from argus.agents.evaluator import Evaluator
@@ -18,6 +18,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
 
 
 class AnalyzeRequest(BaseModel):
@@ -37,6 +39,14 @@ class AnalyzeResponse(BaseModel):
 @app.get("/api/health")
 def health():
     return {"status": "ok"}
+
+
+@app.get("/{full_path:path}")
+def serve_frontend(request: Request, full_path: str):
+    path = FRONTEND_DIR / full_path
+    if full_path and path.exists() and path.is_file():
+        return FileResponse(path)
+    return FileResponse(FRONTEND_DIR / "index.html")
 
 
 @app.exception_handler(Exception)
