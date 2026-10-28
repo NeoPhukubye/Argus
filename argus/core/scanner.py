@@ -7,8 +7,10 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-import tomli as tomllib
-
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python <3.11
+    import tomli as tomllib
 from argus.types import ToolCall, Trajectory
 
 log = logging.getLogger(__name__)
@@ -17,8 +19,8 @@ log = logging.getLogger(__name__)
 def clone_repo(url: str, dest: Path, timeout: int = 120) -> Path:
     if dest.exists():
         shutil.rmtree(dest)
-    log.info("cloning", extra={"url": url, "dest": str(dest)})
-        out = subprocess.check_output(
+    try:
+        subprocess.check_output(
             ["git", "clone", "--depth=1", url, str(dest)],
             stderr=subprocess.STDOUT,
             timeout=timeout,
@@ -53,7 +55,7 @@ def toml_load(path: Path) -> dict[str, Any]:
         with path.open("rb") as f:
             data: dict[str, Any] = tomllib.load(f)
         return data
-    except (OSError, ValueError, Exception):
+    except (OSError, ValueError):
         log.debug("toml_load_failed", extra={"path": str(path)})
         return {}
 
